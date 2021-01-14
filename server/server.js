@@ -9,7 +9,8 @@ app.use(cors());
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-let client;
+let client
+let currentTokenSet
 const state = generators.state()
 const nonce = generators.nonce()
 
@@ -33,6 +34,14 @@ const getParsedJwt = (token) => {
   }
 }
 
+const printTokenset = (tokenSet) => {
+  currentTokenSet = tokenSet
+  console.log("\n-------------------------TOKEN SET-------------------------")
+  console.log(tokenSet)
+  console.log("\n----------------------ID TOKEN CLAIMS----------------------")
+  console.log(tokenSet.claims())
+}
+
 // Protect endpoinds from unauthenticated users
 const requireAuthN = (req, res, next) => {
   let access_token = req.headers["authorization"].split(" ")[1]
@@ -43,8 +52,21 @@ const requireAuthN = (req, res, next) => {
         next()
       }
       else {
-        console.log(isVerified)
-        return res.status(401).send('Invalid token')
+        try {
+          if (currentTokenSet.expired()) {
+            console.log("Trying to refresh token because of expiration")
+            client.refresh(currentTokenSet["refresh_token"]) // => Promise
+              .then((tokenSet) => {
+                printTokenset(tokenSet)
+                req.access_token = tokenSet["access_token"]
+                next()
+              })
+          }
+        } catch (e) {
+          console.log(e)
+          console.log(isVerified)
+          return res.status(401).send('Invalid token')
+        }
       }
     })
 }
@@ -98,20 +120,19 @@ app.post('/code-to-token-exchange', (req, res) => {
   const params = client.callbackParams(req);
   client.callback(`${config.frontend.url}/oauth-callback`, params, { state, nonce })
     .then((tokenSet) => {
-      console.log("\n-------------------------TOKEN SET-------------------------")
-      console.log(tokenSet)
-      console.log("\n----------------------ID TOKEN CLAIMS----------------------")
-      console.log(tokenSet.claims())
+      printTokenset(tokenSet)
       res.send(tokenSet["access_token"])
     })
 })
 
 // Anyone can access this route
-app.get('/public', (req, res) => res.send('This is a public endpoint, therefore everyone has access to it.'));
+app.get('/public', (req, res) => {
+  return res.send('This is a public endpoint, therefore everyone has access to it.')
+});
 
 // A protected endpoint, just authentication ( this endpoint checks that the given token is valid )
 app.get('/protected', requireAuthN, (req, res) => {
-  res.send('Hey there authenticated user')
+  res.json({ message: 'Hey there authenticated user', access_token: req["access_token"] })
 });
 
 // // TRY IT YOURSELF, uncomment this section and comment all others protected endpoints 
@@ -119,8 +140,8 @@ app.get('/protected', requireAuthN, (req, res) => {
 // // ( this endpoint checks that the given token is valid, and that at least one of the given claims exists in the token )
 // // !NOT INCLUDING THE METHOD OPTION!
 // // @see requireAuthZ line 59
-// app.get('/protected', requireAuthN, requireAuthZ({ method: 'ONE', group: 'testgroup', scope: 'email' }), (req, res) => {
-//   res.send('Hey there authenticated user')
+// app.get('/protected', requireAuthN, requireAuthZ({ method: 'ONE', group: 'testgroup', preferred_username: 'emp' }), (req, res) => {
+//   res.json({ message: 'Hey there authenticated user', access_token: req["access_token"] })
 // });
 
 // // TRY IT YOURSELF, uncomment this section and comment all others protected endpoints 
@@ -128,8 +149,8 @@ app.get('/protected', requireAuthN, (req, res) => {
 // // ( this endpoint checks that the given token is valid, and that all of the given claims exists in the token )
 // // !NOT INCLUDING THE METHOD OPTION!
 // // @see requireAuthZ line 59
-// app.get('/protected', requireAuthN, requireAuthZ({ method: 'ALL', group: 'testgroup', scope: 'email' }), (req, res) => {
-//   res.send('Hey there authenticated user')
+// app.get('/protected', requireAuthN, requireAuthZ({ method: 'ALL', group: 'testgroup', preferred_username: 'emp' }), (req, res) => {
+//   res.json({ message: 'Hey there authenticated user', access_token: req["access_token"] })
 // });
 
 app.listen(config.backend.port, () => {

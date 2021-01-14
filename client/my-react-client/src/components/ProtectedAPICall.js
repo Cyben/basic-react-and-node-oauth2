@@ -16,7 +16,11 @@ export class ProtectedAPICall extends React.Component {
             }
         })
             .then(res => {
-                alert(`${res.data}`)
+                alert(`${res.data["message"]}`)
+                if (JSON.stringify(res.data).includes("access_token")) {
+                    alert("Your token was refreshed")
+                    document.cookie = `access_token=${res.data["access_token"]}`;
+                }
                 window.location.href = '/'
             }).catch(err => {
                 alert(err)

@@ -17,7 +17,7 @@ export class OauthCB extends React.Component {
         alert(`Exchanging the code "${this.state.code}"`)
         axios.post(`${config.backend.url}/code-to-token-exchange`, {
             code: this.state.code,
-            state: this.state.state,
+            state: this.state.state
         })
             .then(res => {
                 let access_token = res.data
