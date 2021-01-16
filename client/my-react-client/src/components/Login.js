@@ -1,10 +1,10 @@
-import React from 'react';
-import axios from 'axios';
+import React from 'react'
+import axios from 'axios'
 import config from '../config'
 
 export class Login extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
   }
 
   componentDidMount() {
@@ -20,6 +20,6 @@ export class Login extends React.Component {
   }
 
   render() {
-    return <h1>Getting authorization code</h1>;
+    return <h1>Getting authorization code</h1>
   }
 }
