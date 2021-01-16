@@ -163,7 +163,7 @@ app.get('/protected', requireAuthN, (req, res) => {
 // // A protected endpoint, authentication and authorization 
 // // ( this endpoint checks that the given token is valid, and that at least one of the given claims exists in the token )
 // // !NOT INCLUDING THE METHOD OPTION!
-// // @see requireAuthZ line 59
+// // @see requireAuthZ
 // app.get('/protected', requireAuthN, requireAuthZ({ method: 'ONE', group: 'testgroup', preferred_username: 'emp' }), (req, res) => {
 //   res.json({ message: 'Hey there authenticated user', access_token: req["access_token"] })
 // });
@@ -172,7 +172,7 @@ app.get('/protected', requireAuthN, (req, res) => {
 // // A protected endpoint, authentication and authorization 
 // // ( this endpoint checks that the given token is valid, and that all of the given claims exists in the token )
 // // !NOT INCLUDING THE METHOD OPTION!
-// // @see requireAuthZ line 59
+// // @see requireAuthZ
 // app.get('/protected', requireAuthN, requireAuthZ({ method: 'ALL', group: 'testgroup', preferred_username: 'emp' }), (req, res) => {
 //   res.json({ message: 'Hey there authenticated user', access_token: req["access_token"] })
 // });
