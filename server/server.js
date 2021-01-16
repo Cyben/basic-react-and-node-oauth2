@@ -21,7 +21,7 @@ Issuer.discover(config.auth_service.issuer) // => Promise
       client_id: config.auth_service.client_id,
       client_secret: config.auth_service.client_secret,
       redirect_uris: [`${config.frontend.url}/oauth-callback`], //frontend-callback
-      post_logout_redirect_uris: [`${config.frontend.url}/`], //frontend-callback
+      post_logout_redirect_uris: [`${config.frontend.url}/`], //frontend-home-page
       response_types: ['code'],
     }) // => Client
   }).catch(err => {
