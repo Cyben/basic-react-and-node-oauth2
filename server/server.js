@@ -150,9 +150,9 @@ app.get('/public', (req, res) => {
 });
 
 // For a protected endpoint you should return also an access token, like it is shown in the below endpoints 
-// and thats because there is a change that you token is expired and the refresh process started 
-// and there is a new access token.
-// If there wont be a new access token so the json you will recieve in the frontend is just { message: 'your message' }
+// and thats because there is a chance that your token is expired and the refresh process started 
+// and it returns with the message a new access token.
+// If there won't be a new access token so the json you will recieve in the frontend is just { message: 'your message' }
 
 // A protected endpoint, just authentication ( this endpoint checks that the given token is valid )
 app.get('/protected', requireAuthN, (req, res) => {
