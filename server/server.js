@@ -1,13 +1,13 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+const express = require('express')
+const cors = require('cors')
+const bodyParser = require('body-parser')
 const config = require("../client/my-react-client/src/config.js")
-const { Issuer, generators } = require('openid-client');
+const { Issuer, generators } = require('openid-client')
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json()); // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+const app = express()
+app.use(cors())
+app.use(bodyParser.json()) // support json encoded bodies
+app.use(bodyParser.urlencoded({ extended: true })) // support encoded bodies
 
 let client
 let currentTokenSet
@@ -21,14 +21,17 @@ Issuer.discover(config.auth_service.issuer) // => Promise
       client_id: config.auth_service.client_id,
       client_secret: config.auth_service.client_secret,
       redirect_uris: [`${config.frontend.url}/oauth-callback`], //frontend-callback
+      post_logout_redirect_uris: [`${config.frontend.url}/`], //frontend-home-page
       response_types: ['code'],
-    }); // => Client
-  });
+    }) // => Client
+  }).catch(err => {
+    console.log(err)
+  })
 
 // Utility function to parse JWT tokens 
 const getParsedJwt = (token) => {
   try {
-    return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
   } catch (e) {
     return undefined
   }
@@ -57,17 +60,21 @@ const requireAuthN = (req, res, next) => {
             console.log("Trying to refresh token because of expiration")
             client.refresh(currentTokenSet["refresh_token"]) // => Promise
               .then((tokenSet) => {
+                console.log("Token has been refreshed successfuly")
                 printTokenset(tokenSet)
                 req.access_token = tokenSet["access_token"]
                 next()
+              }).catch(err => {
+                console.log(err)
               })
           }
         } catch (e) {
-          console.log(e)
           console.log(isVerified)
           return res.status(401).send('Invalid token')
         }
       }
+    }).catch(err => {
+      console.log(err)
     })
 }
 
@@ -88,11 +95,15 @@ const requireAuthZ = options => {
     const parsetAccess_token = getParsedJwt(access_token)
     for (const [key, value] of Object.entries(options)) {
       if (key !== "method") {
-        if (parsetAccess_token[key].includes(value)) {
-          console.log(`The user has the claim ${key} with the value ${value}`)
-          claim_check.push(true)
-        }
-        else {
+        try {
+          if (parsetAccess_token[key].includes(value)) {
+            console.log(`The user has the claim ${key} with the value ${value}`)
+            claim_check.push(true)
+          }
+          else {
+            throw `The user doesn't have the claim ${key} with the value ${value}`
+          }
+        } catch (e) {
           console.log(`The user doesn't have the claim ${key} with the value ${value}`)
           claim_check.push(false)
         }
@@ -122,13 +133,26 @@ app.post('/code-to-token-exchange', (req, res) => {
     .then((tokenSet) => {
       printTokenset(tokenSet)
       res.send(tokenSet["access_token"])
+    }).catch(err => {
+      console.log(err)
     })
+})
+
+app.get('/logout', (req, res) => {
+  console.log("Logging out of session")
+  currentTokenSet = undefined // Clearence of the saved tokens
+  res.send(client.endSessionUrl())
 })
 
 // Anyone can access this route
 app.get('/public', (req, res) => {
-  return res.send('This is a public endpoint, therefore everyone has access to it.')
+  return res.json({ message: 'This is a public endpoint, therefore everyone has access to it.' })
 });
+
+// For a protected endpoint you should return also an access token, like it is shown in the below endpoints 
+// and thats because there is a chance that your token is expired and the refresh process started 
+// and it returns with the message a new access token.
+// If there won't be a new access token so the json you will recieve in the frontend is just { message: 'your message' }
 
 // A protected endpoint, just authentication ( this endpoint checks that the given token is valid )
 app.get('/protected', requireAuthN, (req, res) => {

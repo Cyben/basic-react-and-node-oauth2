@@ -1,10 +1,10 @@
-import React from 'react';
-import axios from 'axios';
+import React from 'react'
+import axios from 'axios'
 import config from '../config'
 
 export class ProtectedAPICall extends React.Component {
     constructor(props) {
-        super(props);
+        super(props)
     }
 
     componentDidMount() {
@@ -19,7 +19,7 @@ export class ProtectedAPICall extends React.Component {
                 alert(`${res.data["message"]}`)
                 if (JSON.stringify(res.data).includes("access_token")) {
                     alert("Your token was refreshed")
-                    document.cookie = `access_token=${res.data["access_token"]}`;
+                    document.cookie = `access_token=${res.data["access_token"]}`
                 }
                 window.location.href = '/'
             }).catch(err => {
@@ -29,6 +29,6 @@ export class ProtectedAPICall extends React.Component {
     }
 
     render() {
-        return <h1>Calling protected api</h1>;
+        return <h1>Calling protected api</h1>
     }
 }

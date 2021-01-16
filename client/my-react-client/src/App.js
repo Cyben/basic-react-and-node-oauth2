@@ -1,4 +1,4 @@
-import './App.css';
+import './App.css'
 import { Login } from "./components/Login"
 import { OauthCB } from "./components/OauthCB"
 import { Logout } from "./components/Logout"
@@ -8,7 +8,7 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
-} from "react-router-dom";
+} from "react-router-dom"
 
 
 function App() {

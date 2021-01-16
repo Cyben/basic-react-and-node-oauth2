@@ -1,11 +1,11 @@
-import React from 'react';
-import axios from 'axios';
+import React from 'react'
+import axios from 'axios'
 import config from '../config'
 
 export class OauthCB extends React.Component {
     constructor(props) {
-        super(props);
-        const urlParams = new URLSearchParams(window.location.search);
+        super(props)
+        const urlParams = new URLSearchParams(window.location.search)
         this.state = {
             code: urlParams.get('code'),
             state: urlParams.get('state'),
@@ -32,6 +32,6 @@ export class OauthCB extends React.Component {
     }
 
     render() {
-        return <h1>Exchanging code to token</h1>;
+        return <h1>Exchanging code to token</h1>
     }
 }
